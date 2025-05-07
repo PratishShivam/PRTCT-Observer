@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- Maak admin-config mogelijk -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <!-- Sectie in Stores > Configuration -->
+        <section id="prtct_provisioning"
+                 translate="label"
+                 type="text"
+                 sortOrder="100"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>PRTCT Provisioning</label>          <!-- Naam in admin-menu -->
+            <tab>general</tab>                         <!-- Onder General-tab -->
+            <resource>Magento_Backend::admin</resource><!-- Iedereen met admin-rechten -->
+
+            <!-- Groep voor je velden -->
+            <group id="general"
+                   translate="label"
+                   type="text"
+                   sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Algemeen</label>               <!-- Groepnaam -->
+
+                <!-- API URL veld -->
+                <field id="api_url"
+                       translate="label"
+                       type="text"
+                       sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API URL</label>             <!-- Label boven input -->
+                    <!-- <validate>required-entry</validate> -->
+                </field>
+
+                <!-- API Key veld -->
+                <field id="api_key"
+                       translate="label"
+                       type="obscure"
+                       sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Key</label>             <!-- Label boven input -->
+                    <!-- <validate>required-entry</validate> -->
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
