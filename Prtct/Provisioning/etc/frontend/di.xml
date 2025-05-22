@@ -1,12 +1,43 @@
-<!-- app/code/Prtct/Provisioning/etc/frontend/di.xml -->
 <?xml version="1.0"?>
+<!--
+  - Zegt Magento hoe hij ApiKeyService en andere dependencies moet injecteren in jouw observers en cron-classes.
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Zorg dat ApiKeyService en ApiKeyFactory beschikbaar zijn -->
+
+    <!-- Voor SubscriptionCreated -->
     <type name="Prtct\Provisioning\Observer\SubscriptionCreated">
         <arguments>
             <argument name="apiKeyService" xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
-            <argument name="apiKeyFactory" xsi:type="object">Prtct\Provisioning\Model\ApiKeyFactory</argument>
+            <argument name="extFactory"   xsi:type="object">Magento\Sales\Api\Data\OrderExtensionFactory</argument>
+            <argument name="orderRepo"    xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
         </arguments>
     </type>
+
+    <!-- Voor DeactivateSubscriptionObserver -->
+    <type name="Prtct\Provisioning\Observer\DeactivateSubscriptionObserver">
+        <arguments>
+            <argument name="apiKeyService" xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="orderRepo"     xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
+        </arguments>
+    </type>
+
+    <!-- Voor ProvisionSubscriptionObserver -->
+    <type name="Prtct\Provisioning\Observer\ProvisionSubscriptionObserver">
+        <arguments>
+            <argument name="apiKeyService" xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="orderRepo"     xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
+        </arguments>
+    </type>
+
+    <!-- Voor SubscriptionCheck cron -->
+    <type name="Prtct\Provisioning\Cron\SubscriptionCheck">
+        <arguments>
+            <argument name="scopeConfig"             xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+            <argument name="apiKeyService"           xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="orderCollectionFactory"  xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
+            <argument name="logger"                  xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
 </config>

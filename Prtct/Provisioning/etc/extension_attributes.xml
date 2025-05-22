@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+  - Maakt client_api_key beschikbaar als extension attribute op OrderInterface, zodat we het in code kunnen zetten/lezen.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Extension/etc/extension_attributes.xsd">
+  <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+    <!-- 1) code: de naam van het attribute
+         2) type: het datatype -->
+    <attribute code="client_api_key" type="string"/>
+  </extension_attributes>
+</config>

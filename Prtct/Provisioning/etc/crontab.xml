@@ -1,12 +1,15 @@
-<!-- app/code/Prtct/Provisioning/etc/crontab.xml -->
 <?xml version="1.0"?>
+<!--
+  - Plant een cron-job die elk uur draait.
+  - Roept de execute() methode van SubscriptionCheck aan.
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
   <group id="default">
     <job name="prtct_subscription_check"
          instance="Prtct\Provisioning\Cron\SubscriptionCheck"
          method="execute">
-      <!-- Elk uur draaien als extra zekerheid -->
+      <!-- Cron-expressie: 0 * * * * = elk uur op minuut 0 -->
       <schedule>0 * * * *</schedule>
     </job>
   </group>

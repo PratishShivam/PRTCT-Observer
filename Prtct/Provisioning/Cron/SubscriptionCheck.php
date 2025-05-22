@@ -1,62 +1,57 @@
 <?php
-// app/code/Prtct/Provisioning/Cron/SubscriptionCheck.php
+/**
+ * - Draait elk uur als backup voor de webhooks.
+ * - Controleert per actieve order of het abonnement nog actief is bij PRTCT.
+ * - Deactiveert alle abilities en verwijdert client_api_key bij verlopen abonnement.
+ */
 namespace Prtct\Provisioning\Cron;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\HTTP\Client\Curl;
 use Prtct\Provisioning\Model\ApiKeyService;
-use Prtct\Provisioning\Model\ResourceModel\ApiKey\CollectionFactory;
+use Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Psr\Log\LoggerInterface;
 
 class SubscriptionCheck
 {
     public function __construct(
-        private ScopeConfigInterface $scopeConfig,
-        private Curl                 $curl,
-        private ApiKeyService        $apiKeyService,
-        private CollectionFactory    $collectionFactory,
-        private LoggerInterface      $logger
+        private ScopeConfigInterface     $scopeConfig,         // Voor lezen van admin-config
+        private ApiKeyService            $apiKeyService,       // Voor API-calls
+        private OrderCollectionFactory   $orderCollectionFactory, // Voor ophalen van orders
+        private LoggerInterface          $logger               // Voor logs
     ) {}
 
     public function execute()
     {
         $this->logger->info('Cron: PRTCT subscription check gestart');
 
-        $apiUrl    = rtrim($this->scopeConfig->getValue('prtct_provisioning/general/api_url'), '/');
-        $masterKey = $this->scopeConfig->getValue('prtct_provisioning/general/api_key');
-
-        // Een health-check voordat we starten
+        // 1) Health-check: stop de cron bij falen
         if (! $this->apiKeyService->healthCheck()) {
             $this->logger->error('PRTCT API niet bereikbaar, cron afgebroken.');
             return;
         }
 
-        // Loop alle nog actieve subscriptions
-        $collection = $this->collectionFactory->create()
-            ->addFieldToFilter('status', 'active');
+        // 2) Haal alle orders die nog een client-api-key hebben (dus actief lijken)
+        $collection = $this->orderCollectionFactory->create()
+            ->addFieldToFilter('client_api_key', ['notnull' => true]);
 
-        foreach ($collection as $record) {
-            $subId = $record->getSubscriptionId();
+        // 3) Loop door iedere order
+        foreach ($collection as $order) {
+            $subId    = $order->getIncrementId();                  // order_id = subscription_id
+            $clientKey= $order->getData('client_api_key');         // lees de sleutel
 
-            // Check abonnement-status bij PRTCT
-            $this->curl->addHeader('Authorization', "Bearer {$masterKey}");
-            $this->curl->get("{$apiUrl}/api/v1/subscriptions/{$subId}");
+            // 4) Vraag de status op bij PRTCT
+            $status = $this->apiKeyService->checkSubscriptionStatus($subId);
 
-            if ($this->curl->getStatus() === 200) {
-                $data   = json_decode($this->curl->getBody(), true);
-                $status = $data['data']['status'] ?? 'inactive';
-
-                if ($status !== 'active') {
-                    // 1) Revoke alle abilities
-                    $this->apiKeyService->changeAbilities($record->getClientApiKey(), []);
-                    // 2) Update eigen tabel
-                    $record->setStatus('inactive')->save();
-                    $this->logger->info("Cron: key voor {$subId} gedeactiveerd");
-                }
-            } else {
-                $this->logger->error("Cron: fout bij ophalen status voor {$subId}");
+            if ($status !== 'active') {
+                // 5) Deactiveer alle abilities
+                $this->apiKeyService->changeAbilities($clientKey, []);
+                // 6) Verwijder de key uit de order
+                $order->setData('client_api_key', null);
+                $order->save(); 
+                $this->logger->info("Cron: client key voor order #{$subId} gedeactiveerd.");
             }
         }
+
         $this->logger->info('Cron: PRTCT subscription check voltooid');
     }
 }

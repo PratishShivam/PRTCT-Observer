@@ -1,42 +1,52 @@
 <?php
-// app/code/Prtct/Provisioning/Observer/DeactivateSubscriptionObserver.php
+/**
+ * - Wordt aangeroepen via Mollie webhook bij abonnementscancel.
+ * - Neemt alle abilities weg en verwijdert client_api_key uit order.
+ */
 namespace Prtct\Provisioning\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
 use Prtct\Provisioning\Model\ApiKeyService;
-use Prtct\Provisioning\Model\ResourceModel\ApiKey\CollectionFactory;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
 class DeactivateSubscriptionObserver implements ObserverInterface
 {
     public function __construct(
-        private ApiKeyService      $apiKeyService,
-        private CollectionFactory  $collectionFactory,
-        private LoggerInterface    $logger
+        private ApiKeyService            $apiKeyService, // HTTP-service
+        private OrderRepositoryInterface $orderRepo,      // Om order op te halen/op te slaan
+        private LoggerInterface          $logger         // Voor logging
     ) {}
 
     public function execute(Observer $observer)
     {
-        // Haal subscription_id uit webhook payload
-        $subId = $observer->getEvent()->getData('webhook_payload')['subscription_id'] ?? null;
+        // 1) Lees subscription_id uit webhook payload
+        $payload   = $observer->getEvent()->getData('webhook_payload');
+        $subId     = $payload['subscription_id'] ?? null;
         if (! $subId) {
+            return;  // Stop als subId niet aanwezig
+        }
+
+        // 2) Haal order op via increment_id = subscription_id
+        try {
+            $order = $this->orderRepo->get($subId);
+        } catch (\Exception $e) {
+            $this->logger->error("Order #{$subId} niet gevonden.");
             return;
         }
 
-        // Zoek bijbehorende record
-        $record = $this->collectionFactory->create()
-                   ->addFieldToFilter('subscription_id', $subId)
-                   ->getFirstItem();
-        if (! $record->getId()) {
-            return;
-        }
+        // 3) Revoke alle abilities
+        $clientKey = $order->getExtensionAttributes()->getClientApiKey();
+        $this->apiKeyService->changeAbilities($clientKey, []);  // lege array = alles uit
 
-        // 1) Revoke alle abilities (lege array)
-        $this->apiKeyService->changeAbilities($record->getClientApiKey(), []);
+        // 4) Verwijder client_api_key uit de order
+        $extension = $order->getExtensionAttributes();
+        $extension->setClientApiKey(null);
+        $order->setExtensionAttributes($extension);
 
-        // 2) Update eigen tabel
-        $record->setStatus('inactive')->save();
-        $this->logger->info("Client key voor {$subId} gedeactiveerd.");
+        // 5) Sla bijgewerkte order op
+        $this->orderRepo->save($order);
+        $this->logger->info("Order #{$subId}: client key gedeactiveerd en verwijderd.");
     }
 }
