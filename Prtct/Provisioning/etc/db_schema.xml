@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  - Voegt een kolom client_api_key toe aan de bestaande sales_order tabel.
+  - Magento maakt of past deze kolom automatisch aan bij setup:upgrade.
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+  <table name="sales_order" resource="default" engine="innodb">
+    <column xsi:type="varchar"
+            name="client_api_key"
+            length="255"
+            nullable="true"
+            comment="PRTCT Client API Key"/>
+  </table>
+</schema>

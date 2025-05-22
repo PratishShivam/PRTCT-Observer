@@ -33,7 +33,7 @@ class ProvisionOrderObserver implements ObserverInterface
         $order   = $observer->getEvent()->getOrder();
         $orderId = $order->getIncrementId();
 
-        $this->logger->info("Start provisioning for order #{$orderId}");
+        $this->logger->info("Start provisioning for order #{$orderId}");    
 
         // 2) ONLY skip if we've already provisioned this order
         if ($order->getData('provisioned')) {

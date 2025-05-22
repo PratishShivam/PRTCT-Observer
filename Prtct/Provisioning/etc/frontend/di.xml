@@ -1,0 +1,12 @@
+<!-- app/code/Prtct/Provisioning/etc/frontend/di.xml -->
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Zorg dat ApiKeyService en ApiKeyFactory beschikbaar zijn -->
+    <type name="Prtct\Provisioning\Observer\SubscriptionCreated">
+        <arguments>
+            <argument name="apiKeyService" xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="apiKeyFactory" xsi:type="object">Prtct\Provisioning\Model\ApiKeyFactory</argument>
+        </arguments>
+    </type>
+</config>
