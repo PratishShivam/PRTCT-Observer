@@ -1,9 +1,4 @@
 <?php
-/**
- * - Draait elk uur als backup voor de webhooks.
- * - Controleert per actieve order of het abonnement nog actief is bij PRTCT.
- * - Deactiveert alle abilities en verwijdert client_api_key bij verlopen abonnement.
- */
 namespace Prtct\Provisioning\Cron;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -14,10 +9,10 @@ use Psr\Log\LoggerInterface;
 class SubscriptionCheck
 {
     public function __construct(
-        private ScopeConfigInterface     $scopeConfig,         // Voor lezen van admin-config
-        private ApiKeyService            $apiKeyService,       // Voor API-calls
-        private OrderCollectionFactory   $orderCollectionFactory, // Voor ophalen van orders
-        private LoggerInterface          $logger               // Voor logs
+        private ScopeConfigInterface     $scopeConfig,
+        private ApiKeyService            $apiKeyService,
+        private OrderCollectionFactory   $orderCollectionFactory,
+        private LoggerInterface          $logger
     ) {}
 
     public function execute()
@@ -26,18 +21,18 @@ class SubscriptionCheck
 
         // 1) Health-check: stop de cron bij falen
         if (! $this->apiKeyService->healthCheck()) {
-            $this->logger->error('PRTCT API niet bereikbaar, cron afgebroken.');
+            $this->logger->error('Cron: PRTCT API niet bereikbaar, cron afgebroken.');
             return;
         }
 
-        // 2) Haal alle orders die nog een client-api-key hebben (dus actief lijken)
+        // 2) Haal alle orders met een client_api_key (dus actief lijken)
         $collection = $this->orderCollectionFactory->create()
             ->addFieldToFilter('client_api_key', ['notnull' => true]);
 
         // 3) Loop door iedere order
         foreach ($collection as $order) {
-            $subId    = $order->getIncrementId();                  // order_id = subscription_id
-            $clientKey= $order->getData('client_api_key');         // lees de sleutel
+            $subId     = $order->getIncrementId();                  // increment_id = subscription_id
+            $clientKey = $order->getData('client_api_key');
 
             // 4) Vraag de status op bij PRTCT
             $status = $this->apiKeyService->checkSubscriptionStatus($subId);
@@ -45,9 +40,10 @@ class SubscriptionCheck
             if ($status !== 'active') {
                 // 5) Deactiveer alle abilities
                 $this->apiKeyService->changeAbilities($clientKey, []);
-                // 6) Verwijder de key uit de order
+                // 6) Verwijder de key en markeer provisioned = false
                 $order->setData('client_api_key', null);
-                $order->save(); 
+                $order->setData('provisioned', 0);
+                $order->save();
                 $this->logger->info("Cron: client key voor order #{$subId} gedeactiveerd.");
             }
         }
@@ -55,3 +51,4 @@ class SubscriptionCheck
         $this->logger->info('Cron: PRTCT subscription check voltooid');
     }
 }
+// This cron job checks all active subscriptions and deactivates them if they are not active anymore.

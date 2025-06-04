@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
-<!--
-  - Cron-job draait elke uur
-  - Roept de execute() methode van SubscriptionCheck aan.
--->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-  <group id="default">
-    <job name="prtct_subscription_check"
-         instance="Prtct\Provisioning\Cron\SubscriptionCheck"
-         method="execute">
-      <!-- Cron-expressie: 0 * * * * = elk uur op minuut 0 -->
-      <schedule>0 * * * *</schedule>
-    </job>
-  </group>
+    <group id="default">
+        <job name="prtct_subscription_check"
+             instance="Prtct\Provisioning\Cron\SubscriptionCheck"
+             method="execute">
+            <!-- Cron-expressie: elk uur op minuut 0 -->
+            <schedule>0 * * * *</schedule>
+        </job>
+    </group>
 </config>
+<!--
+    Dit bestand definieert een cron job voor het controleren van abonnementen.
+    De job wordt elk uur uitgevoerd op minuut 0.

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- DI voor SubscriptionCreated -->
+    <type name="Prtct\Provisioning\Observer\SubscriptionCreated">
+        <arguments>
+            <argument name="apiKeyService" xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="extFactory"   xsi:type="object">Magento\Sales\Api\Data\OrderExtensionFactory</argument>
+            <argument name="orderRepo"    xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
+            <argument name="logger"       xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
+    <!-- DI voor DeactivateSubscriptionObserver -->
+    <type name="Prtct\Provisioning\Observer\DeactivateSubscriptionObserver">
+        <arguments>
+            <argument name="apiKeyService"          xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="orderRepo"              xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
+            <argument name="orderCollectionFactory" xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
+            <argument name="logger"                 xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
+    <!-- DI voor ProvisionSubscriptionObserver -->
+    <type name="Prtct\Provisioning\Observer\ProvisionSubscriptionObserver">
+        <arguments>
+            <argument name="apiKeyService"          xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="orderRepo"              xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
+            <argument name="orderCollectionFactory" xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
+            <argument name="logger"                 xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
+    <!-- DI voor ProvisionOrderObserver -->
+    <type name="Prtct\Provisioning\Observer\ProvisionOrderObserver">
+        <arguments>
+            <argument name="scopeConfig"        xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+            <argument name="logger"             xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <argument name="orderRepository"    xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
+            <argument name="resourceConnection" xsi:type="object">Magento\Framework\App\ResourceConnection</argument>
+        </arguments>
+    </type>
+
+    <!-- DI voor SubscriptionCheck cron -->
+    <type name="Prtct\Provisioning\Cron\SubscriptionCheck">
+        <arguments>
+            <argument name="scopeConfig"            xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+            <argument name="apiKeyService"          xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
+            <argument name="orderCollectionFactory" xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
+            <argument name="logger"                 xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
+</config>

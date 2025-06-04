@@ -1,9 +1,4 @@
 <?php
-/**
- * - Wordt aangeroepen na een succesvolle bestelling.
- * - Maakt een client-API-key aan en slaat deze op in sales_order.client_api_key.
- * - Markeert de order als “provisioned”.
- */
 namespace Prtct\Provisioning\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
@@ -16,39 +11,49 @@ use Psr\Log\LoggerInterface;
 class SubscriptionCreated implements ObserverInterface
 {
     public function __construct(
-        private ApiKeyService            $apiKeyService,   // Om HTTP-calls te doen
-        private OrderRepositoryInterface $orderRepo,       // Om de order op te slaan
-        private OrderExtensionFactory    $extFactory,      // Om extension attributes te maken
-        private LoggerInterface          $logger           // Voor logging
+        private ApiKeyService            $apiKeyService,
+        private OrderRepositoryInterface $orderRepo,
+        private OrderExtensionFactory    $extFactory,
+        private LoggerInterface          $logger
     ) {}
 
     public function execute(Observer $observer)
     {
-        // 1) Haal de order op uit het event
+        // 1) Haal de order uit het event (checkout_submit_all_after)
         $order = $observer->getEvent()->getOrder()
                ?: current($observer->getEvent()->getOrders());
-        $incrementId = $order->getIncrementId();
-        $this->logger->info("Start provisioning for order #{$incrementId}");
+        if (! $order) {
+            $this->logger->error('SubscriptionCreated: geen order-gegevens in event.');
+            return;
+        }
 
-        // 2) Vraag client-API-key aan
+        $incrementId = $order->getIncrementId();
+        $this->logger->info("SubscriptionCreated: start provisioning voor order #{$incrementId}");
+
+        // 2) Vraag client-API-key aan bij de externe PRTCT-API
         $clientKey = $this->apiKeyService->createClientKey([
-            'customer_email'  => $order->getCustomerEmail(),  
-            'subscription_id' => $incrementId,                // Order ID als subscription ID
-            'plan'            => 'tier1',                     // Plan, pas aan op basis van SKU
+            'customer_email'  => $order->getCustomerEmail(),
+            'subscription_id' => $incrementId,
+            'plan'            => 'tier1',
             'status'          => 'active'
         ]);
         if (! $clientKey) {
-            $this->logger->error("Geen client API-key ontvangen voor order #{$incrementId}");
-            return;  // Stop als er geen sleutel is aangemaakt
+            $this->logger->error("SubscriptionCreated: geen client API-key ontvangen voor order #{$incrementId}");
+            return;
         }
 
-        // 3) Extension attribute-object aanmaken
-        $extension = $this->extFactory->create();            // a) Maak nieuw extension-obj
-        $extension->setClientApiKey($clientKey);             // b) Zet de sleutel erin
-        $order->setExtensionAttributes($extension);          // c) Koppel aan order
+        // 3) Sla client_api_key en provisioned op in sales_order via extension attributes
+        $extension = $this->extFactory->create();
+        $extension->setClientApiKey($clientKey);
+        $extension->setProvisioned(true);
 
-        // 4) Sla de order op, incl. nieuwe kolom in sales_order
+        $order->setExtensionAttributes($extension);
+        // Sluit ook de “onderliggende kolom” in sales_order aan
+        $order->setData('client_api_key', $clientKey);
+        $order->setData('provisioned', 1);
+
+        // 4) Sla de order op
         $this->orderRepo->save($order);
-        $this->logger->info("Order #{$incrementId} provisioned; client key opgeslagen.");
+        $this->logger->info("SubscriptionCreated: order #{$incrementId} provisioned en client key opgeslagen.");
     }
 }

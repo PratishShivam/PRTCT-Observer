@@ -7,7 +7,7 @@ class ApiKey extends AbstractDb
 {
     protected function _construct()
     {
-        // Koppelt ResourceModel aan de tabel en PK-kolom
+        // Koppelt ResourceModel aan de tabel en primaire sleutel (prtct_api_keys.entity_id)
         $this->_init('prtct_api_keys', 'entity_id');
     }
 }

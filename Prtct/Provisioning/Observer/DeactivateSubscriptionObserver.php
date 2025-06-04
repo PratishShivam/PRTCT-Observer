@@ -1,8 +1,4 @@
 <?php
-/**
- * - Wordt aangeroepen via Mollie webhook bij abonnementscancel.
- * - Neemt alle abilities weg en verwijdert client_api_key uit order.
- */
 namespace Prtct\Provisioning\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
@@ -10,43 +6,57 @@ use Magento\Framework\Event\Observer;
 use Prtct\Provisioning\Model\ApiKeyService;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 
 class DeactivateSubscriptionObserver implements ObserverInterface
 {
     public function __construct(
-        private ApiKeyService            $apiKeyService, // HTTP-service
-        private OrderRepositoryInterface $orderRepo,      // Om order op te halen/op te slaan
-        private LoggerInterface          $logger         // Voor logging
+        private ApiKeyService            $apiKeyService,
+        private OrderRepositoryInterface $orderRepo,
+        private OrderCollectionFactory   $orderCollectionFactory,
+        private LoggerInterface          $logger
     ) {}
 
     public function execute(Observer $observer)
     {
         // 1) Lees subscription_id uit webhook payload
-        $payload   = $observer->getEvent()->getData('webhook_payload');
-        $subId     = $payload['subscription_id'] ?? null;
+        $payload = $observer->getEvent()->getData('webhook_payload');
+        $subId   = $payload['subscription_id'] ?? null;
         if (! $subId) {
-            return;  // Stop als subId niet aanwezig
-        }
-
-        // 2) Haal order op via increment_id = subscription_id
-        try {
-            $order = $this->orderRepo->get($subId);
-        } catch (\Exception $e) {
-            $this->logger->error("Order #{$subId} niet gevonden.");
+            $this->logger->error("DeactivateSubscriptionObserver: geen subscription_id in payload.");
             return;
         }
 
-        // 3) Revoke alle abilities
-        $clientKey = $order->getExtensionAttributes()->getClientApiKey();
-        $this->apiKeyService->changeAbilities($clientKey, []);  // lege array = alles uit
+        // 2) Haal de order op via increment_id = subscription_id
+        $collection = $this->orderCollectionFactory->create()
+            ->addFieldToFilter('increment_id', $subId)
+            ->setPageSize(1);
+        $order = $collection->getFirstItem();
+        if (! $order->getId()) {
+            $this->logger->error("DeactivateSubscriptionObserver: order #{$subId} niet gevonden.");
+            return;
+        }
 
-        // 4) Verwijder client_api_key uit de order
+        // 3) Haal client_api_key op via extension attributes
         $extension = $order->getExtensionAttributes();
-        $extension->setClientApiKey(null);
-        $order->setExtensionAttributes($extension);
+        $clientKey = $extension ? $extension->getClientApiKey() : null;
+        if (! $clientKey) {
+            $this->logger->warning("DeactivateSubscriptionObserver: geen client key op order #{$subId}.");
+            return;
+        }
 
-        // 5) Sla bijgewerkte order op
+        // 4) Intrekken van alle abilities bij PRTCT
+        $this->apiKeyService->changeAbilities($clientKey, []);
+
+        // 5) Verwijder client_api_key en zet provisioned op false (0)
+        $extension->setClientApiKey(null);
+        $extension->setProvisioned(false);
+        $order->setExtensionAttributes($extension);
+        $order->setData('client_api_key', null);
+        $order->setData('provisioned', 0);
+
+        // 6) Sla gewijzigde order op
         $this->orderRepo->save($order);
-        $this->logger->info("Order #{$subId}: client key gedeactiveerd en verwijderd.");
+        $this->logger->info("DeactivateSubscriptionObserver: order #{$subId} – client key gedeactiveerd en verwijderd.");
     }
 }

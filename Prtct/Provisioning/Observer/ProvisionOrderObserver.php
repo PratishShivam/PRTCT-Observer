@@ -16,10 +16,10 @@ class ProvisionOrderObserver implements ObserverInterface
     private ResourceConnection        $resourceConnection;
 
     public function __construct(
-        ScopeConfigInterface $scopeConfig,
-        LoggerInterface      $logger,
-        OrderRepositoryInterface $orderRepository,
-        ResourceConnection   $resourceConnection
+        ScopeConfigInterface         $scopeConfig,
+        LoggerInterface              $logger,
+        OrderRepositoryInterface     $orderRepository,
+        ResourceConnection           $resourceConnection
     ) {
         $this->scopeConfig        = $scopeConfig;
         $this->logger             = $logger;
@@ -29,45 +29,46 @@ class ProvisionOrderObserver implements ObserverInterface
 
     public function execute(Observer $observer)
     {
-        // 1) Grab the order and its customer-visible ID
+        // 1) Haal de order op uit het event (sales_order_place_after)
         $order   = $observer->getEvent()->getOrder();
+        if (! $order || ! $order->getId()) {
+            $this->logger->error("ProvisionOrderObserver: geen order-gegevens gevonden.");
+            return;
+        }
         $orderId = $order->getIncrementId();
+        $this->logger->info("ProvisionOrderObserver: start provisioning voor order #{$orderId}");
 
-        $this->logger->info("Start provisioning for order #{$orderId}");    
-
-        // 2) ONLY skip if we've already provisioned this order
-        if ($order->getData('provisioned')) {
-            $this->logger->info("Skip order #{$orderId} (already provisioned)");
+        // 2) Skip als al provisioned
+        if ((int)$order->getData('provisioned') === 1) {
+            $this->logger->info("ProvisionOrderObserver: skip order #{$orderId} (al provisioned)");
             return;
         }
 
-        // 3) Read API URL/key from Magento settings
-        $apiUrl = $this->scopeConfig->getValue('prtct_provisioning/general/api_url');
-        $apiKey = $this->scopeConfig->getValue('prtct_provisioning/general/api_key');
-        if (!$apiUrl || !$apiKey) {
-            $this->logger->warning('API URL or Key missing');
+        // 3) Lees API-URL en Key uit admin-config
+        $apiUrl = (string)$this->scopeConfig->getValue('prtct_provisioning/general/api_url');
+        $apiKey = (string)$this->scopeConfig->getValue('prtct_provisioning/general/api_key');
+        if (! $apiUrl || ! $apiKey) {
+            $this->logger->warning("ProvisionOrderObserver: API URL of API Key ontbreekt.");
             return;
         }
 
-        // 4) Build JSON payload: email, subscription ID, plan, and “active” status
+        // 4) Bouw payload: email, subscription_id, plan, status
         $email          = $order->getCustomerEmail();
         $subscriptionId = $orderId;
-        // Grab the SKU from the order items
-            $skuPlanMap = [
-                'tier-1' => 'tier1',
-                'tier-2' => 'tier2',
-                'tier-3' => 'tier3',
-            ];
-            
-            $plan = 'tier1'; // fallback
-            foreach ($order->getAllVisibleItems() as $item) {
-                $sku = $item->getSku();         // tier-1, tier-2, tier-3
-                if (isset($skuPlanMap[$sku])) {
-                    $plan = $skuPlanMap[$sku];  // maps 'tier-2' → 'tier2'
-                    break;
-                }
+        // Bepaal plan op basis van SKU (hier een simpele map)
+        $skuPlanMap = [
+            'tier-1' => 'tier1',
+            'tier-2' => 'tier2',
+            'tier-3' => 'tier3',
+        ];
+        $plan = 'tier1'; // fallback
+        foreach ($order->getAllVisibleItems() as $item) {
+            $sku = $item->getSku();
+            if (isset($skuPlanMap[$sku])) {
+                $plan = $skuPlanMap[$sku];
+                break;
             }
-    
+        }
 
         $payload = json_encode([
             'customer_email'  => $email,
@@ -75,10 +76,11 @@ class ProvisionOrderObserver implements ObserverInterface
             'plan'            => $plan,
             'status'          => 'active',
         ]);
-        $this->logger->info("Payload: {$payload}");
+        $this->logger->info("ProvisionOrderObserver: payload = {$payload}");
 
-        // 5) Send via cURL
-        $ch = curl_init($apiUrl);
+        // 5) Verstuur verzoek naar juiste PRTCT-endpoint
+        $endpoint = rtrim($apiUrl, '/') . '/api/v1/apikey/create';
+        $ch = curl_init($endpoint);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer {$apiKey}",
             'Content-Type: application/json'
@@ -88,25 +90,33 @@ class ProvisionOrderObserver implements ObserverInterface
 
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
-            $this->logger->error('cURL error: ' . curl_error($ch));
+            $this->logger->error('ProvisionOrderObserver: cURL error: ' . curl_error($ch));
         }
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        $this->logger->info("Response [HTTP {$httpCode}]: {$response}");
+        $this->logger->info("ProvisionOrderObserver: Response [HTTP {$httpCode}]: {$response}");
 
-        // 6) On HTTP 200, mark as provisioned inside a DB transaction
+        // 6) Als HTTP 200, lees de client_key uit de respons en sla op
         if ($httpCode === 200) {
+            $respData  = json_decode($response, true);
+            $clientKey = $respData['data']['api_key'] ?? null;
+            if (! $clientKey) {
+                $this->logger->error("ProvisionOrderObserver: geen client API-key in response voor order #{$orderId}.");
+                return;
+            }
+
             $connection = $this->resourceConnection->getConnection();
             $connection->beginTransaction();
             try {
-                $order->setData('provisioned', true);
+                $order->setData('client_api_key', $clientKey);
+                $order->setData('provisioned', 1);
                 $this->orderRepository->save($order);
                 $connection->commit();
-                $this->logger->info("Order #{$orderId} provisioned successfully");
+                $this->logger->info("ProvisionOrderObserver: order #{$orderId} succesvol provisioned (key = {$clientKey}).");
             } catch (\Throwable $e) {
                 $connection->rollBack();
-                $this->logger->error("Provisioning failed for order #{$orderId}: " . $e->getMessage());
+                $this->logger->error("ProvisionOrderObserver: provisioning mislukt voor order #{$orderId}: " . $e->getMessage());
                 throw $e;
             }
         }

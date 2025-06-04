@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
-<!--
-  - Maakt client_api_key beschikbaar als extension attribute op OrderInterface, zodat het in code  gezet/gelezen kan worden.
--->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:Extension/etc/extension_attributes.xsd">
-  <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
-    <!-- 1) code: de naam van het attribute
-         2) type: het datatype -->
-    <attribute code="client_api_key" type="string"/>
-  </extension_attributes>
+        xsi:noNamespaceSchemaLocation="urn:magento:framework/Extension/etc/extension_attributes.xsd">
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <!-- Maakt client_api_key beschikbaar via get/setExtensionAttributes() -->
+        <attribute code="client_api_key" type="string"/>
+        <!-- Maakt provisioned beschikbaar (boolean) -->
+        <attribute code="provisioned"    type="boolean"/>
+    </extension_attributes>
 </config>
+<!--
+    Dit bestand definieert de extension attributes voor de OrderInterface.
+    Het voegt twee attributen toe: client_api_key en provisioned.
+    Deze attributen kunnen worden gebruikt om extra informatie toe te voegen aan een order.
