@@ -11,4 +11,4 @@
 <!--
     Dit bestand definieert de extension attributes voor de OrderInterface.
     Het voegt twee attributen toe: client_api_key en provisioned.
-    Deze attributen kunnen worden gebruikt om extra informatie toe te voegen aan een order.
+    Deze attributen kunnen worden gebruikt om extra informatie toe te voegen aan een order. -->
