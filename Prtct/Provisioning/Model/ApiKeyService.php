@@ -32,13 +32,13 @@ class ApiKeyService
      */
     public function healthCheck(): bool
     {
-        if (empty($this->apiUrl)) {
+        if (empty($this->apiUrl)) { // Controleer of de API URL is ingesteld
             $this->logger->error("PRTCT: API URL is leeg in config.");
             return false;
         }
-        $url = "{$this->apiUrl}/api/v1/health/check";
+        $url = "{$this->apiUrl}/api/v1/health/check"; 
         try {
-            $this->curl->get($url);
+            $this->curl->get($url); 
             return ($this->curl->getStatus() === 200);
         } catch (\Exception $e) {
             $this->logger->error("Health check failed: " . $e->getMessage());
@@ -55,27 +55,27 @@ class ApiKeyService
      *   - status
      * Retourneert de string api_key, of null als mislukking.
      */
-    public function createClientKey(array $payload): ?string
+    public function createClientKey(array $payload): ?string // Verwacht een array met de benodigde gegevens
     {
-        if (empty($this->apiUrl) || empty($this->masterKey)) {
+        if (empty($this->apiUrl) || empty($this->masterKey)) { // Controleer of de API URL en masterKey zijn ingesteld
             $this->logger->error("PRTCT createClientKey: API URL of masterKey ontbreekt.");
             return null;
         }
 
-        $url  = "{$this->apiUrl}/api/v1/apikey/create";
-        $json = json_encode($payload);
+        $url  = "{$this->apiUrl}/api/v1/apikey/create"; // Endpoint voor het aanmaken van een client key
+        $json = json_encode($payload); // Zet de payload om naar JSON
 
-        $this->curl->addHeader('Authorization', "Bearer {$this->masterKey}");
-        $this->curl->addHeader('Content-Type', 'application/json');
-        $this->curl->post($url, $json);
+        $this->curl->addHeader('Authorization', "Bearer {$this->masterKey}"); // Voeg de masterKey toe als Authorization header
+        $this->curl->addHeader('Content-Type', 'application/json'); // Zet de Content-Type header op application/json
+        $this->curl->post($url, $json); // Stuur een POST-verzoek naar de API met de JSON payload
 
-        if ($this->curl->getStatus() !== 200) {
+        if ($this->curl->getStatus() !== 200) { 
             $this->logger->error("Create client key failed: HTTP " . $this->curl->getStatus());
             return null;
         }
 
-        $response = json_decode((string)$this->curl->getBody(), true);
-        return $response['data']['api_key'] ?? null;
+        $response = json_decode((string)$this->curl->getBody(), true); // Decode de JSON response van de API
+        return $response['data']['api_key'] ?? null; // Retourneer de api_key uit de response, of null als deze niet bestaat
     }
 
     /**
@@ -84,21 +84,21 @@ class ApiKeyService
      *   - client_api_key
      *   - abilities (array)
      */
-    public function changeAbilities(string $clientKey, array $abilities): bool
+    public function changeAbilities(string $clientKey, array $abilities): bool // Verwacht een client API key en een array van abilities
     {
-        if (empty($this->apiUrl) || empty($this->masterKey)) {
+        if (empty($this->apiUrl) || empty($this->masterKey)) { // Controleer of de API URL en masterKey zijn ingesteld
             $this->logger->error("PRTCT changeAbilities: API URL of masterKey ontbreekt.");
             return false;
         }
-        $url = "{$this->apiUrl}/api/v1/apikey/change/abilities";
-        $payload = json_encode([
+        $url = "{$this->apiUrl}/api/v1/apikey/change/abilities"; // Endpoint voor het aanpassen van abilities
+        $payload = json_encode([ // Maak de payload aan als JSON
             'client_api_key' => $clientKey,
             'abilities'      => $abilities,
         ]);
 
-        $this->curl->addHeader('Authorization', "Bearer {$this->masterKey}");
-        $this->curl->addHeader('Content-Type', 'application/json');
-        $this->curl->put($url, $payload);
+        $this->curl->addHeader('Authorization', "Bearer {$this->masterKey}"); // Voeg de masterKey toe als Authorization header
+        $this->curl->addHeader('Content-Type', 'application/json'); // Zet de Content-Type header op application/json
+        $this->curl->put($url, $payload); // Stuur een PUT-verzoek naar de API met de JSON payload
 
         if ($this->curl->getStatus() !== 200) {
             $this->logger->error("Change abilities failed: HTTP " . $this->curl->getStatus());
@@ -111,22 +111,22 @@ class ApiKeyService
      * checkSubscriptionStatus(): roept GET aan op /api/v1/subscription/status/{subId}
      * Geeft de status terug (bijv. 'active', 'canceled') of null bij fout.
      */
-    public function checkSubscriptionStatus(string $subId): ?string
+    public function checkSubscriptionStatus(string $subId): ?string // Verwacht een subscription ID als string
     {
-        if (empty($this->apiUrl) || empty($this->masterKey)) {
+        if (empty($this->apiUrl) || empty($this->masterKey)) { // Controleer of de API URL en masterKey zijn ingesteld
             $this->logger->error("PRTCT checkSubscriptionStatus: API URL of masterKey ontbreekt.");
             return null;
         }
-        $url = "{$this->apiUrl}/api/v1/subscription/status/{$subId}";
+        $url = "{$this->apiUrl}/api/v1/subscription/status/{$subId}"; // Endpoint voor het controleren van de abonnementsstatus
         try {
-            $this->curl->get($url);
+            $this->curl->get($url); // Stuur een GET-verzoek naar de API
             if ($this->curl->getStatus() !== 200) {
                 $this->logger->error("checkSubscriptionStatus mislukt: HTTP " . $this->curl->getStatus());
                 return null;
             }
-            $resp = json_decode((string)$this->curl->getBody(), true);
-            return $resp['data']['status'] ?? null; // b.v. 'active', 'canceled'
-        } catch (\Exception $e) {
+            $resp = json_decode((string)$this->curl->getBody(), true); // Decode de JSON response van de API
+            return $resp['data']['status'] ?? null; // b.v. 'active', 'canceled' / 'expired'
+        } catch (\Exception $e) { 
             $this->logger->error("Exception in checkSubscriptionStatus: " . $e->getMessage());
             return null;
         }

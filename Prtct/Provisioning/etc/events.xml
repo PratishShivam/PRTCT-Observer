@@ -9,10 +9,10 @@
     </event>
 
     <!-- 2) Direct na sales_order_place_after (alternatieve provisioning) -->
-    <event name="sales_order_place_after">
+    <!-- <event name="sales_order_place_after">
         <observer name="prtct_provision_order"
                   instance="Prtct\Provisioning\Observer\ProvisionOrderObserver"/>
-    </event>
+    </event> -->
 
     <!-- 3) Mollie-renewal webhook -->
     <event name="prtct_provisioning_subscription_renew">

@@ -10,7 +10,7 @@ use Magento\Framework\App\ResourceConnection;
 
 class ProvisionOrderObserver implements ObserverInterface
 {
-    private ScopeConfigInterface      $scopeConfig;
+    private ScopeConfigInterface      $sScopeConfig;
     private LoggerInterface           $logger;
     private OrderRepositoryInterface  $orderRepository;
     private ResourceConnection        $resourceConnection;

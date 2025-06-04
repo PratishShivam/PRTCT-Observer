@@ -1,19 +1,10 @@
 <?php
-/**
- * - Haalt meerdere rijen uit uit prtct_api_keys
- */
-namespace Prtct\Provisioning\Model\ResourceModel\ApiKey;
+namespace Prtct\Provisioning\Model\ResourceModel\Order;
 
-use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Magento\Sales\Model\ResourceModel\Order\Collection as CoreOrderCollection;
 
-class Collection extends AbstractCollection
+class Collection extends CoreOrderCollection
 {
-    protected function _construct()
-    {
-        // Initieert model en resource model voor collections
-        $this->_init(
-            \Prtct\Provisioning\Model\ApiKey::class,
-            \Prtct\Provisioning\Model\ResourceModel\ApiKey::class
-        );
-    }
+    // Door te extenderen kunnen we filters gebruiken op sales_order,
+    // bijvoorbeeld ->addFieldToFilter('client_api_key', ['notnull'=>true])
 }
