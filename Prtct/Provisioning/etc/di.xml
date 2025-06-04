@@ -2,54 +2,104 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-    <!-- DI voor SubscriptionCreated -->
+    <!-- Dependency Injection (DI) voor SubscriptionCreated observer:
+         - Magento leest deze sectie en zorgt ervoor dat wanneer SubscriptionCreated wordt geïnstantieerd,
+           de benodigde objecten automatisch worden geïnjecteerd.
+    -->
     <type name="Prtct\Provisioning\Observer\SubscriptionCreated">
         <arguments>
-            <argument name="apiKeyService" xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
-            <argument name="extFactory"   xsi:type="object">Magento\Sales\Api\Data\OrderExtensionFactory</argument>
-            <argument name="orderRepo"    xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
-            <argument name="logger"       xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <!-- ApiKeyService: zorgt voor alle communicatie met de externe PRTCT-API -->
+            <argument name="apiKeyService" xsi:type="object">
+                Prtct\Provisioning\Model\ApiKeyService
+            </argument>
+            <!-- OrderExtensionFactory: maakt een ExtensionAttributes-object aan om de client_api_key en provisioned in te vullen -->
+            <argument name="extFactory" xsi:type="object">
+                Magento\Sales\Api\Data\OrderExtensionFactory
+            </argument>
+            <!-- OrderRepositoryInterface: hiermee wordt de sales_order-entiteit opgeslagen en opgehaald -->
+            <argument name="orderRepo" xsi:type="object">
+                Magento\Sales\Api\OrderRepositoryInterface
+            </argument>
+            <!-- LoggerInterface: voor alle log-berichten (info, error, enz.) in var/log/system.log -->
+            <argument name="logger" xsi:type="object">
+                Psr\Log\LoggerInterface
+            </argument>
         </arguments>
     </type>
 
-    <!-- DI voor DeactivateSubscriptionObserver -->
+    <!-- DI voor DeactivateSubscriptionObserver:
+         - Deze observer wordt geactiveerd bij de prtct_provisioning_subscription_cancel-event (Mollie cancel).
+         - Magento injecteert de volgende objecten bij constructie:
+    -->
     <type name="Prtct\Provisioning\Observer\DeactivateSubscriptionObserver">
         <arguments>
-            <argument name="apiKeyService"          xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
-            <argument name="orderRepo"              xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
-            <argument name="orderCollectionFactory" xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
-            <argument name="logger"                 xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <!-- ApiKeyService: gebruikt om de client_api_key-rechten in te trekken via de PRTCT-API -->
+            <argument name="apiKeyService" xsi:type="object">
+                Prtct\Provisioning\Model\ApiKeyService
+            </argument>
+            <!-- OrderRepositoryInterface: om de order op te halen of op te slaan na het intrekken van de sleutel -->
+            <argument name="orderRepo" xsi:type="object">
+                Magento\Sales\Api\OrderRepositoryInterface
+            </argument>
+            <!-- Order\CollectionFactory: om via een collection te zoeken op increment_id (subscriptie_ID) -->
+            <argument name="orderCollectionFactory" xsi:type="object">
+                Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory
+            </argument>
+            <!-- LoggerInterface: logt fouten of informatie over de deactivering -->
+            <argument name="logger" xsi:type="object">
+                Psr\Log\LoggerInterface
+            </argument>
         </arguments>
     </type>
 
-    <!-- DI voor ProvisionSubscriptionObserver -->
+    <!-- DI voor ProvisionSubscriptionObserver:
+         - Deze observer wordt geactiveerd bij het prtct_provisioning_subscription_renew-event (Mollie renew).
+         - Injecteert vergelijkbare services als DeactivateSubscriptionObserver, om rechten weer te activeren.
+    -->
     <type name="Prtct\Provisioning\Observer\ProvisionSubscriptionObserver">
         <arguments>
-            <argument name="apiKeyService"          xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
-            <argument name="orderRepo"              xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
-            <argument name="orderCollectionFactory" xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
-            <argument name="logger"                 xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <!-- ApiKeyService: activeert opnieuw alle benodigde abilities op de client_api_key -->
+            <argument name="apiKeyService" xsi:type="object">
+                Prtct\Provisioning\Model\ApiKeyService
+            </argument>
+            <!-- OrderRepositoryInterface: om de order te laden en eventueel de provisioned-flag te updaten -->
+            <argument name="orderRepo" xsi:type="object">
+                Magento\Sales\Api\OrderRepositoryInterface
+            </argument>
+            <!-- Order\CollectionFactory: zoekt de order op increment_id om de juiste client_api_key te vinden -->
+            <argument name="orderCollectionFactory" xsi:type="object">
+                Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory
+            </argument>
+            <!-- LoggerInterface: logt succes of mislukking van de heractivering -->
+            <argument name="logger" xsi:type="object">
+                Psr\Log\LoggerInterface
+            </argument>
         </arguments>
     </type>
 
-    <!-- DI voor ProvisionOrderObserver -->
-    <type name="Prtct\Provisioning\Observer\ProvisionOrderObserver">
-        <arguments>
-            <argument name="scopeConfig"        xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
-            <argument name="logger"             xsi:type="object">Psr\Log\LoggerInterface</argument>
-            <argument name="orderRepository"    xsi:type="object">Magento\Sales\Api\OrderRepositoryInterface</argument>
-            <argument name="resourceConnection" xsi:type="object">Magento\Framework\App\ResourceConnection</argument>
-        </arguments>
-    </type>
-
-    <!-- DI voor SubscriptionCheck cron -->
+    <!-- DI voor SubscriptionCheck cron job:
+         - Deze cron draait elk uur en wil alle actieve orders aflopen.
+         - Injecteert scopeConfig, ApiKeyService, Order\CollectionFactory en logger.
+    -->
     <type name="Prtct\Provisioning\Cron\SubscriptionCheck">
         <arguments>
-            <argument name="scopeConfig"            xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
-            <argument name="apiKeyService"          xsi:type="object">Prtct\Provisioning\Model\ApiKeyService</argument>
-            <argument name="orderCollectionFactory" xsi:type="object">Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory</argument>
-            <argument name="logger"                 xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <!-- ScopeConfigInterface: om de PRTCT API‐URL/masterKey te lezen voordat je healthCheck() doet -->
+            <argument name="scopeConfig" xsi:type="object">
+                Magento\Framework\App\Config\ScopeConfigInterface
+            </argument>
+            <!-- ApiKeyService: bevat healthCheck(), checkSubscriptionStatus() en changeAbilities() -->
+            <argument name="apiKeyService" xsi:type="object">
+                Prtct\Provisioning\Model\ApiKeyService
+            </argument>
+            <!-- Order\CollectionFactory: haalt alle orders met een niet‐lege client_api_key op -->
+            <argument name="orderCollectionFactory" xsi:type="object">
+                Prtct\Provisioning\Model\ResourceModel\Order\CollectionFactory
+            </argument>
+            <!-- LoggerInterface: logt begin, fouten of afronding van de cron‐run -->
+            <argument name="logger" xsi:type="object">
+                Psr\Log\LoggerInterface
+            </argument>
         </arguments>
     </type>
 
-</config> 
+</config>
