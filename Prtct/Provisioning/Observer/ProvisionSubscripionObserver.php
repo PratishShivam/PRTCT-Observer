@@ -27,7 +27,7 @@ class ProvisionSubscriptionObserver implements ObserverInterface
         // 2) Haal de subscription_id eruit (komt van Mollie)
         $subId = $payload['subscription_id'] ?? null;
         if (! $subId) {
-            // Als er geen ID is, stoppen we hier
+            // Als er geen ID is, stopt het hier
             return;
         }
 
@@ -63,9 +63,7 @@ class ProvisionSubscriptionObserver implements ObserverInterface
             return;
         }
 
-        // 6) Log een informatief bericht
+        // 6) Logger
         $this->logger->info("Client key {$clientKey} opnieuw geactiveerd voor order #{$subId}.");
-        // 7) (Optioneel) je hoeft de order zelf niet opnieuw op te slaan als de kolom
-        //    client_api_key ongewijzigd blijft. Maar je zou hier extra flags kunnen zetten.
     }
 }

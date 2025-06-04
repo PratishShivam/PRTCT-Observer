@@ -1,5 +1,4 @@
 <?php
-// app/code/Prtct/Provisioning/Model/ApiKey.php
 namespace Prtct\Provisioning\Model;
 
 use Magento\Framework\Model\AbstractModel;

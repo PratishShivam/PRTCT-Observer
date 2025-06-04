@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  - Plant een cron-job die elk uur draait.
+  - Cron-job draait elke uur
   - Roept de execute() methode van SubscriptionCheck aan.
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

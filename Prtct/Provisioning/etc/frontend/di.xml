@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  - Zegt Magento hoe hij ApiKeyService en andere dependencies moet injecteren in jouw observers en cron-classes.
+  - Dit vertelt Magento hoe hij ApiKeyService en andere dependencies/services moet injecteren in de observers en cron-classes.
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">

@@ -9,8 +9,8 @@
                  type="text"
                  sortOrder="100"
                  showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>PRTCT Provisioning</label>          <!-- Naam in admin-menu -->
-            <tab>general</tab>                         <!-- Onder General-tab -->
+            <label>PRTCT Provisioning</label>         
+            <tab>general</tab>                       
             <resource>Magento_Backend::admin</resource><!-- Iedereen met admin-rechten -->
 
             <!-- Groep voor je velden -->
@@ -19,7 +19,7 @@
                    type="text"
                    sortOrder="10"
                    showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Algemeen</label>               <!-- Groepnaam -->
+                <label>Algemeen</label>     
 
                 <!-- API URL veld -->
                 <field id="api_url"
@@ -27,8 +27,7 @@
                        type="text"
                        sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>API URL</label>             <!-- Label boven input -->
-                    <!-- <validate>required-entry</validate> -->
+                    <label>API URL</label>         
                 </field>
 
                 <!-- API Key veld -->
@@ -37,8 +36,7 @@
                        type="obscure"
                        sortOrder="20"
                        showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>API Key</label>             <!-- Label boven input -->
-                    <!-- <validate>required-entry</validate> -->
+                    <label>API Key</label>            
                 </field>
             </group>
         </section>

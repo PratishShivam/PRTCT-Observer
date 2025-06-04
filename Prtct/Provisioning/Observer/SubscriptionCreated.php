@@ -32,7 +32,7 @@ class SubscriptionCreated implements ObserverInterface
 
         // 2) Vraag client-API-key aan
         $clientKey = $this->apiKeyService->createClientKey([
-            'customer_email'  => $order->getCustomerEmail(),  // Email van klant
+            'customer_email'  => $order->getCustomerEmail(),  
             'subscription_id' => $incrementId,                // Order ID als subscription ID
             'plan'            => 'tier1',                     // Plan, pas aan op basis van SKU
             'status'          => 'active'

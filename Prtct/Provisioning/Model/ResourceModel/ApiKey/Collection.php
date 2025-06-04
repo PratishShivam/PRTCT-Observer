@@ -1,5 +1,7 @@
 <?php
-// app/code/Prtct/Provisioning/Model/ResourceModel/ApiKey/Collection.php
+/**
+ * - Haalt meerdere rijen uit uit prtct_api_keys
+ */
 namespace Prtct\Provisioning\Model\ResourceModel\ApiKey;
 
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;

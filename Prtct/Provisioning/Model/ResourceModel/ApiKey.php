@@ -1,5 +1,4 @@
 <?php
-// app/code/Prtct/Provisioning/Model/ResourceModel/ApiKey.php
 namespace Prtct\Provisioning\Model\ResourceModel;
 
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
