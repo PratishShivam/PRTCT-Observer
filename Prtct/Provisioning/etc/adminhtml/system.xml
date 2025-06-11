@@ -25,7 +25,7 @@
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <!-- wordt door Magento automatisch weggeschreven in de database­-tabel core_config_data -->
                     <label>API URL</label>
-                    <validate>required-entry</validate>
+                    <!-- <validate>required-entry</validate> -->
                 </field>
 
                 <field id="api_key"
@@ -35,7 +35,7 @@
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <!-- wordt door Magento automatisch weggeschreven in de database­-tabel core_config_data -->
                     <label>API Key</label>
-                    <validate>required-entry</validate>
+                    <!-- <validate>required-entry</validate> -->
                 </field>
 
             </group>
