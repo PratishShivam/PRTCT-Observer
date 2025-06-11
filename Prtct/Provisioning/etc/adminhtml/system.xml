@@ -16,13 +16,14 @@
                    type="text"
                    sortOrder="10"
                    showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Algemeen</label>
+                <label>Algemeen</label> 
 
                 <field id="api_url"
                        translate="label"
                        type="text"
                        sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
+                    <!-- wordt door Magento automatisch weggeschreven in de database­-tabel core_config_data -->
                     <label>API URL</label>
                     <validate>required-entry</validate>
                 </field>
@@ -32,6 +33,7 @@
                        type="obscure"
                        sortOrder="20"
                        showInDefault="1" showInWebsite="1" showInStore="1">
+                    <!-- wordt door Magento automatisch weggeschreven in de database­-tabel core_config_data -->
                     <label>API Key</label>
                     <validate>required-entry</validate>
                 </field>

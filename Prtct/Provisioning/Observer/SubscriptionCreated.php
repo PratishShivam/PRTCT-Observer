@@ -68,7 +68,7 @@ class SubscriptionCreated implements ObserverInterface
         $order->setData('provisioned', 1); // Sla provisioned op als 1 (true) in de order data
 
         // 5) Sla de order op, hierdoor worden client_api_key en provisioned weggeschreven
-        $this->orderRepo->save($order);
+        $this->orderRepo->save($order); // Sla de order op met de nieuwe gegevens in de Database
         $this->logger->info("SubscriptionCreated: order #{$incrementId} provisioned; client key opgeslagen.");
     }
 }

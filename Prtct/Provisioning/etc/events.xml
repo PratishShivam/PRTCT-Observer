@@ -2,13 +2,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
 
-    <!-- 1) Na succesvolle bestelling (checkout) -->
+    <!-- Na succesvolle bestelling (checkout) -->
     <event name="checkout_submit_all_after">
         <observer name="prtct_subscription_created"
                   instance="Prtct\Provisioning\Observer\SubscriptionCreated"/>
     </event>
 
-    <!-- 2) Direct na sales_order_place_after (alternatieve provisioning) -->
+    <!-- Direct na sales_order_place_after (alternatieve provisioning) -->
     <!--
     <event name="sales_order_place_after">
         <observer name="prtct_provision_order"
@@ -16,13 +16,13 @@
     </event>
     -->
 
-    <!-- 3) Mollie-renewal webhook -->
+    <!-- Mollie-renewal webhook -->
     <event name="prtct_provisioning_subscription_renew">
         <observer name="prtct_provision_renewal"
                   instance="Prtct\Provisioning\Observer\ProvisionSubscriptionObserver"/>
     </event>
 
-    <!-- 4) Mollie-cancel webhook -->
+    <!-- Mollie-cancel webhook -->
     <event name="prtct_provisioning_subscription_cancel">
         <observer name="prtct_provision_cancellation"
                   instance="Prtct\Provisioning\Observer\DeactivateSubscriptionObserver"/>
