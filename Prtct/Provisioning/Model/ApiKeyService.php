@@ -22,7 +22,7 @@ class ApiKeyService
         $this->scopeConfig = $scopeConfig;
         $this->logger      = $logger;
 
-        // Lees je base URL en master API key uit system.xml
+        // BASE-URL en Master-Api-Key worden gelezen uit de configuratie
         $this->apiUrl    = rtrim((string)$scopeConfig->getValue('prtct_provisioning/general/api_url'), '/');
         $this->masterKey = (string)$scopeConfig->getValue('prtct_provisioning/general/api_key');
     }
@@ -63,19 +63,19 @@ class ApiKeyService
         }
 
         $url  = "{$this->apiUrl}/api/v1/apikey/create";
-        // volgens docs moet "abilities" een JSON-string zijn
+        // Abilities zijn een JSON-string
         $body = json_encode([
-            'abilities' => json_encode($abilities)
+            'abilities' => json_encode($abilities) // Omzetten naar JSON-string
         ]);
 
         // DEBUG: log URL & payload
         $this->logger->info("PRTCT:createClientKey → URL: {$url}");
         $this->logger->info("PRTCT:createClientKey → Body: {$body}");
 
-        $this->curl->addHeader('Authorization', "Bearer {$this->masterKey}");
-        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->addHeader('Authorization', "Bearer {$this->masterKey}"); // Master API Key in de header
+        $this->curl->addHeader('Content-Type', 'application/json'); // Content-Type is JSON
         try {
-            $this->curl->post($url, $body);
+            $this->curl->post($url, $body); // POST request met JSON-body & payload
         } catch (\Exception $e) {
             $this->logger->error("PRTCT:createClientKey exception: " . $e->getMessage());
             return null;
@@ -133,6 +133,4 @@ class ApiKeyService
         $this->logger->info("PRTCT:changeAbilities → HTTP {$status}");
         return ($status === 200);
     }
-
-    // (optioneel kun je hier nog je leak- en statistics-methodes toevoegen…)
 }

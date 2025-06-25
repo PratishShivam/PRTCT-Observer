@@ -31,7 +31,7 @@ class SubscriptionCreated implements ObserverInterface
         $this->logger->info("SubscriptionCreated: provisioning voor order #{$incrementId}");
 
         try {
-            // 2) Abilities vanuit de PRTCT documentatie
+            // 2) Abilities van PRTCT API
             $abilities = [
                 'health:check',
                 'pass:check',

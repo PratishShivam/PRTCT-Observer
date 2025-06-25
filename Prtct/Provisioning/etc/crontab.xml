@@ -6,10 +6,7 @@
              instance="Prtct\Provisioning\Cron\SubscriptionCheck"
              method="execute">
             <!-- Cron-expressie: elk uur op minuut 0 -->
-            <schedule>0 * * * *</schedule>
+            <schedule>* * * * *</schedule>
         </job>
     </group>
 </config>
-<!--
-    Dit bestand definieert een cron job voor het controleren van abonnementen.
-    De job wordt elk uur uitgevoerd op minuut 0.

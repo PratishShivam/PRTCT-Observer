@@ -25,22 +25,29 @@ class SubscriptionCheck
         $collection = $this->orderCollectionFactory->create()
             ->addFieldToFilter('client_api_key', ['notnull' => true]);
 
-        foreach ($collection as $order) {
-            $subId     = $order->getIncrementId();
-            $clientKey = $order->getData('client_api_key');
+        foreach ($collection as $order) { // Loop door alle orders met een client_api_key
+            $subId     = $order->getIncrementId();  // Mollie subscription_id is opgeslagen als increment_id
+            
+            // 2) Doorloop door alle orders
+            $this->logger->info("Cron: Verwerk order #{$subId}"); 
 
             try {
-                $subscription = $this->mollieClient
-                                      ->subscriptions
-                                      ->get($subId);
-                $status = $subscription->status;
+                $subscription = $this->mollieClient // Haal de Mollie subscription op
+                                      ->subscriptions 
+                                      ->get($subId); 
+                $status = $subscription->status; // Status van de subscription
+            $this->logger->info("Cron: Mollie subscription #{$subId} status={$status}");
+            } catch (\Mollie\Api\Exceptions\ApiException $e) {
+                $this->logger->error("Cron: Mollie subscription #{$subId} niet gevonden: {$e->getMessage()}");
+                continue; // Ga door naar de volgende order
             } catch (\Exception $e) {
                 $this->logger->error("Cron: Mollie subscription #{$subId} niet gevonden: {$e->getMessage()}");
                 continue;
             }
 
-            // 2) Als niet meer actief, intrekken en provisioned uitzetten
+            // 3) Als niet meer actief, intrekken en provisioned uitzetten
             if ($status !== 'active') {
+                $clientKey = $order->getData('client_api_key'); 
                 $this->apiKeyService->changeAbilities($clientKey, []);
                 $order->setData('provisioned', 0);
                 $this->orderRepo->save($order);
