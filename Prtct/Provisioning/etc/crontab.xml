@@ -6,7 +6,7 @@
              instance="Prtct\Provisioning\Cron\SubscriptionCheck"
              method="execute">
             <!-- Cron-expressie: elk uur op minuut 0 -->
-            <schedule>* * * * *</schedule>
+            <schedule>0 * * * *</schedule>
         </job>
     </group>
 </config>
