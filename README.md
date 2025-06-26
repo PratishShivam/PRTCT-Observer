@@ -45,19 +45,14 @@ Deze configuratie wordt opgeslagen in de database in de `core_config_data`-tabel
    - Observer: `SubscriptionCreated`
    - Actie: maakt via de PRTCT API een nieuwe client API-key aan en slaat deze op in `sales_order` samen met een `provisioned`-status.
 
-2. Webhook voor annulering:
-   - Event: `prtct_provisioning_subscription_cancel`
-   - Observer: `DeactivateSubscriptionObserver`
-   - Actie: trekt rechten in via `PUT /api/v1/apikey/change/abilities` met een lege abilities-array en zet de `provisioned`-status naar `0`.
-
-3. Webhook voor verlenging:
+2. Webhook voor verlenging:
    - Event: `prtct_provisioning_subscription_renew`
    - Observer: `ProvisionSubscriptionObserver`
    - Actie: activeert abilities opnieuw via `PUT /api/v1/apikey/change/abilities` en zet de `provisioned`-status naar `1`.
 
-4. Periodieke cronjob:
+3. Periodieke cronjob:
    - Class: `SubscriptionCheck`
-   - Actie: controleert elk uur of een abonnement nog actief is via de Mollie API. Indien niet actief, worden rechten ingetrokken en de `provisioned`-status op `0` gezet.
+   - Actie: controleert middernacht of een abonnement nog actief is via de Mollie API. Indien niet actief, worden rechten ingetrokken en de `provisioned`-status op `0` gezet.
 
 ## Database-aanpassingen
 
@@ -72,14 +67,14 @@ De volgende kolommen worden toegevoegd aan de `sales_order`-tabel:
 - `Prtct\Provisioning\Observer\SubscriptionCreated`: Wordt uitgevoerd na succesvolle checkout en vraagt een API-key aan.
 - `Prtct\Provisioning\Observer\DeactivateSubscriptionObserver`: Wordt aangeroepen bij annulering van een abonnement.
 - `Prtct\Provisioning\Observer\ProvisionSubscriptionObserver`: Wordt aangeroepen bij verlenging van een abonnement.
-- `Prtct\Provisioning\Cron\SubscriptionCheck`: Cronjob die elk uur draait om abonnementstatussen te controleren.
+- `Prtct\Provisioning\Cron\SubscriptionCheck`: Cronjob die elk dag draait om abonnementstatussen te controleren.
 - `Prtct\Provisioning\Model\ResourceModel\Order\Collection`: Een uitbreiding van Magento’s standaard sales_order-collectie die het mogelijk maakt om te filteren op aangepaste velden zoals client_api_key en provisioned, die door deze module aan de sales_order tabel zijn toegevoegd.
 
 ## Cronjob planning
 
-De module bevat een cronjob die is gedefinieerd in `etc/crontab.xml`. De job draait elke 60 minuten:
+De module bevat een cronjob die is gedefinieerd in `etc/crontab.xml`. De job draait elke nacht om 12 uur:
 - Jobnaam: prtct_subscription_check
-- Schedule: 0 * * * *
+- Schedule: 0 0 * * *
 - Method: execute
 - Class: Prtct\Provisioning\Cron\SubscriptionCheck
 
@@ -92,10 +87,6 @@ De module reageert op de volgende Magento events:
 - `checkout_submit_all_after`:
   - Observer: `SubscriptionCreated`
   - Actie: Provisioning uitvoeren bij nieuwe bestelling
-
-- `prtct_provisioning_subscription_cancel`:
-  - Observer: `DeactivateSubscriptionObserver`
-  - Actie: Abonnement deactiveren en toegang intrekken
 
 - `prtct_provisioning_subscription_renew`:
   - Observer: `ProvisionSubscriptionObserver`
