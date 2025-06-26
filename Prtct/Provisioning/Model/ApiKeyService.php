@@ -129,6 +129,11 @@ class ApiKeyService
             return false;
         }
 
+        // Response body en statuscode loggen
+        $resp = $this->curl->getBody();
+        $this->logger->debug("PRTCT:changeAbilities → Response body: {$resp}");
+        
+        // Statuscode controleren
         $status = $this->curl->getStatus();
         $this->logger->info("PRTCT:changeAbilities → HTTP {$status}");
         return ($status === 200);
