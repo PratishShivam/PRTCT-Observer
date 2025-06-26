@@ -15,8 +15,8 @@
     </event>
 
     <!-- Mollie-cancel webhook -->
-    <event name="prtct_provisioning_subscription_cancel">
+    <!-- <event name="prtct_provisioning_subscription_cancel">
         <observer name="prtct_provision_cancellation"
                   instance="Prtct\Provisioning\Observer\DeactivateSubscriptionObserver"/>
-    </event>
+    </event> -->
 </config>
