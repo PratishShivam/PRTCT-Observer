@@ -5,8 +5,8 @@
         <job name="prtct_subscription_check"
              instance="Prtct\Provisioning\Cron\SubscriptionCheck"
              method="execute">
-            <!-- Cron-expressie: elk uur op minuut 0 -->
-            <schedule>0 * * * *</schedule>
+            <!-- Cron-expressie: elk dag om 12 uur 's nachts -->
+            <schedule>0 0 * * *</schedule>
         </job>
     </group>
 </config>
