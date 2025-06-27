@@ -15,6 +15,7 @@ class DeactivateSubscriptionObserver implements ObserverInterface
         private LoggerInterface          $logger
     ) {}
 
+    // Deze observer is vervangen door SubscriptionCheck.php!
     public function execute(Observer $observer)
     {
         // 1) Lees subscription_id uit Mollie-webhook

@@ -65,7 +65,6 @@ De volgende kolommen worden toegevoegd aan de `sales_order`-tabel:
 
 - `Prtct\Provisioning\Model\ApiKeyService`: Verzorgt alle communicatie met de externe PRTCT API.
 - `Prtct\Provisioning\Observer\SubscriptionCreated`: Wordt uitgevoerd na succesvolle checkout en vraagt een API-key aan.
-- `Prtct\Provisioning\Observer\DeactivateSubscriptionObserver`: Wordt aangeroepen bij annulering van een abonnement.
 - `Prtct\Provisioning\Observer\ProvisionSubscriptionObserver`: Wordt aangeroepen bij verlenging van een abonnement.
 - `Prtct\Provisioning\Cron\SubscriptionCheck`: Cronjob die elk dag draait om abonnementstatussen te controleren.
 - `Prtct\Provisioning\Model\ResourceModel\Order\Collection`: Een uitbreiding van Magento’s standaard sales_order-collectie die het mogelijk maakt om te filteren op aangepaste velden zoals client_api_key en provisioned, die door deze module aan de sales_order tabel zijn toegevoegd.
