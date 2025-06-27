@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Sales\Block\Order\Info">
+        <plugin name="prtct_add_client_key"
+                type="Prtct\Provisioning\Plugin\AddClientKeyToOrderInfo"
+                sortOrder="10"/>
+    </type>
+</config>

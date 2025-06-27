@@ -1,5 +1,4 @@
 <?php
-// Registreer de module bij Magento
 use Magento\Framework\Component\ComponentRegistrar;
 
 ComponentRegistrar::register(
